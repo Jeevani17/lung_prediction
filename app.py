@@ -61,3 +61,10 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
+@app.route("/", methods=["GET", "POST"])
+def index():
+    try:
+        # existing logic
+        return render_template("index.html", ...)
+    except Exception as e:
+        return f"Startup Error: {e}", 500
