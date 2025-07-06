@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Image Diagnosis System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+        .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #edf2f7;
+        }
+        .result-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .normal-result {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .loading {
+            display: none;
+        }
+        .loading.show {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-6 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-center">
+                <i class="fas fa-heartbeat text-3xl mr-3"></i>
+                <h1 class="text-3xl font-bold">Medical Image Diagnosis System</h1>
+            </div>
+            <p class="text-center mt-2 text-blue-100">AI-Powered Pneumonia & Cancer Detection</p>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Main Form Card -->
+            <div class="bg-white rounded-2xl card-shadow p-8 mb-8">
+                <form method="POST" enctype="multipart/form-data" id="diagnosisForm">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Left Column - Upload -->
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                                <i class="fas fa-upload mr-3 text-blue-600"></i>
+                                Upload Medical Image
+                            </h2>
+                            
+                            <!-- File Upload Area -->
+                            <div class="upload-area rounded-lg p-8 text-center mb-6" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <p class="text-gray-600 mb-4">Drag and drop your image here, or click to browse</p>
+                                <input type="file" name="file" id="fileInput" accept="image/*" class="hidden" required>
+                                <button type="button" onclick="document.getElementById('fileInput').click()" 
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition duration-300">
+                                    Choose File
+                                </button>
+                            </div>
+                            
+                            <!-- File Preview -->
+                            <div id="filePreview" class="hidden mb-6">
+                                <img id="previewImage" class="w-full h-48 object-cover rounded-lg shadow-md" alt="Preview">
+                                <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column - Options -->
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                                <i class="fas fa-cog mr-3 text-green-600"></i>
+                                Diagnosis Options
+                            </h2>
+                            
+                            <!-- Disease Selection -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-3">Select Disease Type:</label>
+                                <div class="space-y-3">
+                                    {% if 'pneumonia' in models_available %}
+                                    <label class="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                        <input type="radio" name="disease" value="pneumonia" class="mr-3 text-blue-600">
+                                        <div>
+                                            <div class="font-medium text-gray-800">Pneumonia Detection</div>
+                                            <div class="text-sm text-gray-600">Analyze chest X-rays for pneumonia</div>
+                                        </div>
+                                    </label>
+                                    {% endif %}
+                                    
+                                    {% if 'cancer' in models_available %}
+                                    <label class="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                        <input type="radio" name="disease" value="cancer" class="mr-3 text-blue-600">
+                                        <div>
+                                            <div class="font-medium text-gray-800">Cancer Detection</div>
+                                            <div class="text-sm text-gray-600">Analyze medical images for cancer</div>
+                                        </div>
+                                    </label>
+                                    {% endif %}
+                                    
+                                    {% if not models_available %}
+                                    <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <p class="text-yellow-800">No models are currently available. Please ensure model files are present.</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" 
+                                    class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105"
+                                    {% if not models_available %}disabled{% endif %}>
+                                <i class="fas fa-search mr-2"></i>
+                                Analyze Image
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p class="mt-4 text-gray-600">Analyzing image...</p>
+            </div>
+
+            <!-- Error Message -->
+            {% if error_message %}
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
+                    <p class="text-red-800">{{ error_message }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Results -->
+            {% if prediction %}
+            <div class="bg-white rounded-2xl card-shadow p-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-chart-line mr-3 text-purple-600"></i>
+                    Diagnosis Results
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Uploaded Image -->
+                    {% if image_url %}
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">Analyzed Image</h3>
+                        <img src="{{ url_for('static', filename=image_url.replace('static/', '')) }}" 
+                             alt="Uploaded image" 
+                             class="w-full h-64 object-cover rounded-lg shadow-md">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Results -->
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">Analysis Results</h3>
+                        
+                        <!-- Result Card -->
+                        <div class="{% if 'NORMAL' in prediction or 'NO CANCER' in prediction %}normal-result{% else %}result-card{% endif %} text-white p-6 rounded-lg mb-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm opacity-90">{{ disease_type.title() }} Analysis</span>
+                                <i class="fas fa-{% if 'NORMAL' in prediction or 'NO CANCER' in prediction %}check-circle{% else %}exclamation-circle{% endif %} text-2xl"></i>
+                            </div>
+                            <h4 class="text-2xl font-bold mb-2">{{ prediction }}</h4>
+                            {% if confidence %}
+                            <div class="flex items-center">
+                                <span class="text-sm opacity-90 mr-2">Confidence:</span>
+                                <span class="text-lg font-semibold">{{ "%.1f"|format(confidence) }}%</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Confidence Bar -->
+                        {% if confidence %}
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                <span>Confidence Level</span>
+                                <span>{{ "%.1f"|format(confidence) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full" 
+                                     style="width: {{ confidence }}%"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Disclaimer -->
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-yellow-600 mr-2 mt-1"></i>
+                                <div class="text-sm text-yellow-800">
+                                    <strong>Medical Disclaimer:</strong> This AI analysis is for educational purposes only and should not replace professional medical diagnosis. Please consult with a qualified healthcare provider for proper medical evaluation.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 Medical Image Diagnosis System. Built with AI for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        // File upload handling
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const filePreview = document.getElementById('filePreview');
+        const previewImage = document.getElementById('previewImage');
+        const fileName = document.getElementById('fileName');
+        const form = document.getElementById('diagnosisForm');
+        const loading = document.getElementById('loading');
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    fileName.textContent = file.name;
+                    filePreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Form submission with loading
+        form.addEventListener('submit', () => {
+            loading.classList.add('show');
+        });
+    </script>
+</body>
+</html>
