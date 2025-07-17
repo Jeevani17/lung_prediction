@@ -1,6 +1,6 @@
 flask
 tensorflow>=2.10.0
-pillow
+Pillow
 gunicorn
 werkzeug
 numpy
