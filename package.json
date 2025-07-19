@@ -1,0 +1,22 @@
+{
+  "name": "medical-image-diagnosis",
+  "version": "1.0.0",
+  "description": "Medical Image Diagnosis System using AI for educational purposes",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Build complete - static files ready'",
+    "start": "echo 'Starting static server'",
+    "dev": "echo 'Development mode - open index.html'"
+  },
+  "keywords": [
+    "medical",
+    "ai",
+    "diagnosis",
+    "machine-learning",
+    "healthcare"
+  ],
+  "author": "Medical AI Team",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
